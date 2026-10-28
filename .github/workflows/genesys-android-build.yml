@@ -45,12 +45,15 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Verify source files
+      - name: Initialize nested Lua submodule and verify source
         shell: bash
         run: |
+          git -C android-project/deps/edopro/ocgcore submodule sync --recursive
+          git -C android-project/deps/edopro/ocgcore submodule update --init --recursive
           test -f android-project/deps/edopro/gframe/drawing.cpp
           test -f android-project/deps/edopro/config/genesys_points.csv
           test -f android-project/deps/edopro/ocgcore/lua/src/lauxlib.h
+          echo "Genesys source and Lua headers verified."
 
       - name: Build native Android libraries
         shell: bash
