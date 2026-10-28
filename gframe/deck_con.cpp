@@ -69,7 +69,14 @@ void UpdateGenesysPointsLabel(const Deck& deck) {
     const auto result = rules.Validate(lists, GetGenesysPointCap());
     wchar_t buffer[256]{};
     if(!result.forbidden_type_ids.empty()) {
-        swprintf(buffer, 256, L"Genesys: %d/%d pts | Link/Pendulum not allowed", result.total_points, result.point_cap);
+    swprintf(buffer, 256,
+        L"Genesys: %d/%d | forbidden=%d | M/E/S=%d/%d/%d",
+        result.total_points,
+        result.point_cap,
+        static_cast<int>(result.forbidden_type_ids.size()),
+        static_cast<int>(lists.main.size()),
+        static_cast<int>(lists.extra.size()),
+        static_cast<int>(lists.side.size()));
     } else if(!result.over_three_copy_ids.empty()) {
         swprintf(buffer, 256, L"Genesys: %d/%d pts | more than 3 copies", result.total_points, result.point_cap);
     } else if(result.over_cap) {
