@@ -1,6 +1,5 @@
 
 #include "genesys_updater.h"
-
 #include "curl.h"
 
 #include <atomic>
@@ -9,12 +8,20 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include <utility>
 
 namespace ygo::genesys {
 namespace {
 
 std::atomic<unsigned long> update_counter{0};
+std::mutex log_mutex;
+
+void Log(const std::string& message) {
+    std::lock_guard<std::mutex> lock(log_mutex);
+    std::ofstream log("./config/genesys_updater.log", std::ios::app);
+    if(log)
+        log << message << '\n';
+}
+
 struct UpdateWorker {
     std::thread thread;
 
@@ -34,14 +41,17 @@ size_t WriteData(void* data, size_t size, size_t count, void* user_data) {
 
 bool DownloadCsv(const std::string& url,
                  const std::filesystem::path& destination) {
-
     std::ofstream output(destination, std::ios::binary | std::ios::trunc);
-    if(!output)
+    if(!output) {
+        Log("ERRO: nao foi possivel criar o arquivo temporario.");
         return false;
+    }
 
     CURL* curl = curl_easy_init();
-    if(!curl)
+    if(!curl) {
+        Log("ERRO: curl_easy_init falhou.");
         return false;
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteData);
@@ -54,14 +64,21 @@ bool DownloadCsv(const std::string& url,
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "EDOPro-Genesys-CSV-Updater");
 
     const CURLcode result = curl_easy_perform(curl);
-
     long status = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
-    curl_easy_cleanup(curl);
 
+    const std::string error_message = curl_easy_strerror(result);
+    curl_easy_cleanup(curl);
     output.close();
-    return result == CURLE_OK && status >= 200 && status < 300
-           && !output.fail();
+
+    if(result != CURLE_OK || status < 200 || status >= 300 || output.fail()) {
+        Log("ERRO no download: " + error_message +
+            " | HTTP " + std::to_string(status));
+        return false;
+    }
+
+    Log("Download concluido. HTTP " + std::to_string(status));
+    return true;
 }
 
 bool ReplaceFile(const std::filesystem::path& downloaded,
@@ -76,27 +93,31 @@ bool ReplaceFile(const std::filesystem::path& downloaded,
 
     if(had_original) {
         std::filesystem::rename(local, backup, ec);
-        if(ec)
+        if(ec) {
+            Log("ERRO ao renomear CSV local: " + ec.message());
             return false;
+        }
     }
 
     std::filesystem::rename(downloaded, local, ec);
 
     if(ec) {
+        Log("ERRO ao instalar CSV baixado: " + ec.message());
         if(had_original) {
             std::error_code restore_error;
             std::filesystem::rename(backup, local, restore_error);
+            if(restore_error)
+                Log("ERRO ao restaurar backup: " + restore_error.message());
         }
         return false;
     }
 
     std::filesystem::remove(backup, ec);
+    Log("CSV remoto instalado no caminho local.");
     return true;
 }
 
 } // namespace
-
-
 
 void StartCsvUpdate(Rules& rules,
                     const std::filesystem::path& local_csv,
@@ -105,6 +126,8 @@ void StartCsvUpdate(Rules& rules,
     static UpdateWorker worker;
 
     std::call_once(start_flag, [&rules, local_csv, remote_url] {
+        Log("Atualizador iniciado. URL: " + remote_url);
+
         worker.thread = std::thread([&rules, local_csv, remote_url] {
             std::error_code ec;
             const auto parent = local_csv.parent_path();
@@ -112,8 +135,10 @@ void StartCsvUpdate(Rules& rules,
             if(!parent.empty())
                 std::filesystem::create_directories(parent, ec);
 
-            if(ec)
+            if(ec) {
+                Log("ERRO ao criar pasta: " + ec.message());
                 return;
+            }
 
             const auto suffix =
                 std::to_string(update_counter.fetch_add(1));
@@ -130,14 +155,21 @@ void StartCsvUpdate(Rules& rules,
             std::string error;
 
             if(!candidate.LoadCsv(temp, &error)) {
+                Log("ERRO ao validar CSV remoto: " + error);
                 std::filesystem::remove(temp, ec);
                 return;
             }
 
+            Log("CSV remoto validado. Entradas: " +
+                std::to_string(candidate.PointEntryCount()));
+
             if(!ReplaceFile(temp, local_csv))
                 return;
 
-            rules.LoadCsv(local_csv, &error);
+            if(!rules.LoadCsv(local_csv, &error))
+                Log("ERRO ao recarregar regras: " + error);
+            else
+                Log("Regras Genesys atualizadas com sucesso.");
         });
     });
 }
