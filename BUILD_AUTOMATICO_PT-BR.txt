@@ -1,0 +1,20 @@
+COMPILACAO AUTOMATICA PARA WINDOWS — EDOPro Genesys
+
+Este pacote CONTINUA SENDO CODIGO-FONTE. Ele NAO contem um executavel Genesys pronto.
+Foi adicionado um workflow do GitHub Actions para tentar compilar o cliente Windows e disponibilizar o executavel como artefato.
+
+LIMITACOES IMPORTANTES
+- O workflow compila o cliente EDOPro; nao completa sozinho a integracao Genesys que ainda falta.
+- A lista de pontos continua vazia e as regras ainda nao sao impostas por completo no servidor/inicio do duelo.
+- O executavel gerado, se a compilacao funcionar, NAO deve ser tratado como uma versao Genesys completa nem substituir a instalacao original sem testes.
+
+O QUE ESTA PREPARADO
+.github/workflows/genesys-build.yml: workflow para Windows 2022, dependencias, compilacao e upload do executavel como artefato.
+
+PARA EXECUTAR A COMPILACAO
+1. Criar um repositorio no GitHub e enviar o conteudo desta pasta (nao enviar apenas o ZIP compactado).
+2. Abrir a aba Actions do repositorio.
+3. Escolher "EDOPro Genesys - Windows build" e clicar em "Run workflow".
+4. Se concluir, baixar o artefato "EDOPro-Genesys-Windows-executable" na execucao.
+
+Isto ainda exige a criacao/envio de um repositorio no GitHub e pode falhar caso dependencias ou o codigo precisem de ajustes. Nenhuma compilacao foi executada pelo GitHub por este pacote; portanto nao ha executavel validado.

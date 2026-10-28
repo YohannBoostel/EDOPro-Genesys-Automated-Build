@@ -1,0 +1,26 @@
+EDOPRO GENESYS — PACOTE DE CODIGO-FONTE PARA WINDOWS
+
+O QUE ESTE PACOTE CONTEM
+- Codigo-fonte do EDOPro com um indicador preliminar de pontos no editor de decks.
+- Codigo-fonte do ygopro-core anexado na pasta ocgcore.
+- Modulo Genesys independente e testes unitarios.
+- Configuracao inicial: 100 pontos.
+
+IMPORTANTE
+Este pacote NAO e um instalador nem um executavel. A interface exibe o total e avisos preliminares, mas as restricoes ainda NAO sao impostas no servidor/sala ou no inicio do duelo. O campo Genesys ainda nao foi alterado. A lista de pontos nao vem preenchida.
+
+PASSOS PARA PREPARAR A DEPENDENCIA AUSENTE
+1. Instale Git for Windows e Visual Studio 2022 com o workload "Desktop development with C++".
+2. Execute PREPARAR_DEPENDENCIAS.bat. Ele baixa o submodulo Lua para ocgcore/lua/src.
+3. Para compilar o projeto completo, siga as instrucoes e scripts de build do repositorio EDOPro. O build completo requer dependencias nativas adicionais e nao e iniciado por este arquivo.
+
+TESTE DO MODULO DE REGRAS
+Com um compilador C++17 instalado, o teste pode ser compilado com:
+  g++ -std=c++17 -Wall -Wextra -pedantic gframe/genesys_rules.cpp tests/genesys_rules_smoke.cpp -o genesys_smoke.exe
+E executado com:
+  genesys_smoke.exe
+
+PONTUACAO
+A tabela config/genesys_points.csv esta vazia intencionalmente. O atualizador em tools/genesys tenta importar a tabela da pagina oficial da Konami. Revise o CSV gerado antes de usar; o formato da pagina pode mudar.
+
+NAO substitua sua instalacao atual do EDOPro por este pacote. Mantenha-o como uma copia separada de desenvolvimento.

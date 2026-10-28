@@ -1,0 +1,59 @@
+name: EDOPro Genesys - Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    env:
+      TRAVIS_OS_NAME: windows
+      BUILD_CONFIG: release
+      ARCH: x86
+      DXSDK_DIR: /c/d3d9sdk/
+      VCPKG_ROOT: /c/vcpkg2
+      DEPENDENCIES_BASE_URL: https://github.com/edo9300/edopro-vcpkg-cache/releases/latest/download
+      DEPLOY_DIR: deploy
+      PICS_URL: ""
+      FIELDS_URL: ""
+      COVERS_URL: ""
+      DISCORD_APP_ID: ""
+      UPDATE_URL: ""
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install Windows build dependencies
+        shell: bash
+        run: ./travis/dependencies.sh
+
+      - name: Install Premake
+        shell: bash
+        run: ./travis/install-premake5.sh
+
+      - name: Compile EDOPro client
+        shell: bash
+        run: ./travis/build.sh
+
+      - name: Package client executable
+        shell: bash
+        run: ./travis/predeploy.sh
+
+      - name: Upload compiled executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: EDOPro-Genesys-Windows-executable
+          path: deploy/ygoprodll.exe
+          if-no-files-found: error
+          retention-days: 7
