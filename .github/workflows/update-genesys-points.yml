@@ -1,0 +1,44 @@
+
+name: Update Genesys points list
+
+on:
+  schedule:
+    - cron: "23 17 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-points:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Update official Genesys points
+        run: python scripts/update_genesys_points.py
+
+      - name: Commit changes if needed
+        shell: bash
+        run: |
+          git add config/genesys_points.csv
+
+          if git diff --cached --quiet; then
+            echo "The Genesys points list has not changed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git commit -m "Update official Genesys points list"
+          git push origin HEAD:main
