@@ -62,6 +62,7 @@ bool DownloadCsv(const std::string& url,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "EDOPro-Genesys-CSV-Updater");
+	curl_easy_setopt(curl, CURLOPT_CAINFO, "./cacert.pem");
 
     const CURLcode result = curl_easy_perform(curl);
     long status = 0;
