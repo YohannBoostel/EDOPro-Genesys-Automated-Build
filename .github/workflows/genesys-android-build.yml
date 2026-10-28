@@ -45,13 +45,17 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Initialize all Genesys submodules and verify source
+      - name: Fetch Lua source required by OCGCore
         shell: bash
         run: |
-          git -C android-project/deps/edopro submodule sync --recursive
-          git -C android-project/deps/edopro submodule update --init --force --recursive
-          echo "Submodule status:"
-          git -C android-project/deps/edopro submodule status --recursive
+          # In the Genesys branch, ocgcore is a normal directory rather than a Git submodule.
+          # Therefore its nested lua/src submodule is not populated by actions/checkout.
+          git clone https://github.com/lua/lua.git android-project/deps/edopro/ocgcore/lua/src
+          git -C android-project/deps/edopro/ocgcore/lua/src checkout 6e22fedb74cf0c9b6656e9fce8b7331db847c605
+
+      - name: Verify Genesys source files
+        shell: bash
+        run: |
           echo "Checking required files:"
           test -f android-project/deps/edopro/gframe/drawing.cpp
           test -f android-project/deps/edopro/config/genesys_points.csv
