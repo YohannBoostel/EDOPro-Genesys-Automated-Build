@@ -35,6 +35,7 @@ jobs:
         shell: bash
         run: |
           git clone --recurse-submodules https://github.com/edo9300/edopro-android.git android-project
+          rm -rf android-project/deps/edopro
 
       - name: Check out Genesys source and submodules
         uses: actions/checkout@v4
