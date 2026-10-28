@@ -19,7 +19,7 @@ int main() {
 
     DeckLists deck;
     deck.main.push_back({123, 0, 0, "Test Card"});
-    deck.extra.push_back({456, 0, Rules::TYPE_LINK, "Forbidden Link"});
+    deck.extra.push_back({456, 0, Rules::GENESYS_TYPE_LINK, "Forbidden Link"});
     deck.side.push_back({123, 0, 0, "Test Card"});
     deck.side.push_back({123, 0, 0, "Test Card"});
     deck.side.push_back({123, 0, 0, "Test Card"});
