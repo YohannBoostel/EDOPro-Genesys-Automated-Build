@@ -7,8 +7,8 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
+# Mantém o build separado da instalação original do usuário.
 jobs:
   build-windows:
     runs-on: windows-2022
@@ -19,6 +19,8 @@ jobs:
       DXSDK_DIR: /c/d3d9sdk/
       VCPKG_ROOT: /c/vcpkg2
       DEPENDENCIES_BASE_URL: https://github.com/edo9300/edopro-vcpkg-cache/releases/latest/download
+      # O script travis/get-windows-vcpkg-cache.sh exige esta variável.
+      VCPKG_CACHE_ZIP_URL: https://github.com/edo9300/edopro-vcpkg-cache/releases/latest/download/installed_x86-windows-static.zip
       DEPLOY_DIR: deploy
       PICS_URL: ""
       FIELDS_URL: ""
@@ -30,17 +32,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 1
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install Windows build dependencies
-        shell: bash
-        run: ./travis/dependencies.sh
-
       - name: Install Premake
         shell: bash
         run: ./travis/install-premake5.sh
+
+      - name: Install Windows build dependencies
+        shell: bash
+        run: ./travis/dependencies.sh
 
       - name: Compile EDOPro client
         shell: bash
@@ -50,10 +53,10 @@ jobs:
         shell: bash
         run: ./travis/predeploy.sh
 
-      - name: Upload compiled executable
+      - name: Upload compiled client
         uses: actions/upload-artifact@v4
         with:
-          name: EDOPro-Genesys-Windows-executable
+          name: EDOPro-Genesys-Windows-client
           path: deploy/ygoprodll.exe
           if-no-files-found: error
           retention-days: 7
