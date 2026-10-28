@@ -37,6 +37,25 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # O projeto gera os arquivos Visual Studio com o toolset v141_xp
+      # porque o script travis/build.sh usa --oldwindows=true.
+      # O runner windows-2022 não instala esse toolset por padrão.
+      - name: Install Visual C++ v141 and Windows XP build tools
+        shell: pwsh
+        run: |
+          $installer = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $installPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $components = @(
+            "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
+            "Microsoft.VisualStudio.Component.WinXP"
+          )
+          foreach ($component in $components) {
+            & $installer modify --installPath $installPath --add $component --quiet --norestart --nocache
+            if ($LASTEXITCODE -ne 0) {
+              throw "Falha ao instalar o componente do Visual Studio: $component (código $LASTEXITCODE)"
+            }
+          }
+
       - name: Install Premake
         shell: bash
         run: ./travis/install-premake5.sh
