@@ -1771,6 +1771,14 @@ bool DeckBuilder::check_limit(const CardDataC* pointer) {
 	}
 	return true;
 }
+int DeckBuilder::GetGenesysPoints(const CardDataC* card) const {
+	if(!card)
+		return 0;
+
+	const auto name = Utils::ToUTF8IfNeeded(gDataManager->GetName(card->code));
+	return GetGenesysRules().PointsFor(card->code, card->alias, name);
+}
+
 void DeckBuilder::RefreshCurrentDeck() {
 	DeckManager::RefreshDeck(current_deck);
 	RefreshLimitationStatus();
