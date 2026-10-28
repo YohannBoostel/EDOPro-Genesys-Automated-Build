@@ -53,24 +53,29 @@ jobs:
           git clone https://github.com/lua/lua.git android-project/deps/edopro/ocgcore/lua/src
           git -C android-project/deps/edopro/ocgcore/lua/src checkout 6e22fedb74cf0c9b6656e9fce8b7331db847c605
 
-      - name: Register Genesys rules source in Android build
+      - name: Register Genesys rules and updater sources in Android build
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path("android-project/jni/Android.mk")
           lines = path.read_text().splitlines()
-          if any("$(GFRAME_PATH)/genesys_rules.cpp" in line for line in lines):
-              print("Genesys rules source is already registered.")
-          else:
+          required = [
+              "$(GFRAME_PATH)/genesys_rules.cpp",
+              "$(GFRAME_PATH)/genesys_updater.cpp",
+          ]
+          missing = [source for source in required if not any(source in line for line in lines)]
+          if missing:
               index = next((i for i, line in enumerate(lines) if "$(GFRAME_PATH)/drawing.cpp" in line), None)
               if index is None:
                   raise SystemExit("Could not locate drawing.cpp entry in jni/Android.mk")
-              lines.insert(index + 1, "\t\t\t\t   $(GFRAME_PATH)/genesys_rules.cpp \\")
+              for offset, source in enumerate(missing, start=1):
+                  lines.insert(index + offset, "\t\t\t\t   " + source + " \\")
               path.write_text("\n".join(lines) + "\n")
-              print("Registered genesys_rules.cpp in Android.mk.")
+              print("Registered Genesys sources: " + ", ".join(missing))
+          else:
+              print("Genesys rules and updater sources are already registered.")
           PY
-
       - name: Verify Genesys source files
         shell: bash
         run: |
