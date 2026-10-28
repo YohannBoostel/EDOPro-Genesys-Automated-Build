@@ -14,9 +14,15 @@
 namespace ygo::genesys {
 namespace {
 
-std::once_flag curl_init_flag;
-CURLcode curl_init_result = CURLE_FAILED_INIT;
 std::atomic<unsigned long> update_counter{0};
+struct UpdateWorker {
+    std::thread thread;
+
+    ~UpdateWorker() {
+        if(thread.joinable())
+            thread.join();
+    }
+};
 
 size_t WriteData(void* data, size_t size, size_t count, void* user_data) {
     const size_t bytes = size * count;
@@ -28,12 +34,6 @@ size_t WriteData(void* data, size_t size, size_t count, void* user_data) {
 
 bool DownloadCsv(const std::string& url,
                  const std::filesystem::path& destination) {
-    std::call_once(curl_init_flag, [] {
-        curl_init_result = curl_global_init(CURL_GLOBAL_DEFAULT);
-    });
-
-    if(curl_init_result != CURLE_OK)
-        return false;
 
     std::ofstream output(destination, std::ios::binary | std::ios::trunc);
     if(!output)
@@ -96,13 +96,16 @@ bool ReplaceFile(const std::filesystem::path& downloaded,
 
 } // namespace
 
+
+
 void StartCsvUpdate(Rules& rules,
                     const std::filesystem::path& local_csv,
                     const std::string& remote_url) {
     static std::once_flag start_flag;
+    static UpdateWorker worker;
 
-    std::call_once(start_flag, [&rules, local_csv, remote_url] {
-        std::thread([&rules, local_csv, remote_url] {
+    std::call_once(start_flag, [&rules, local_csv, remote_url, &worker] {
+        worker.thread = std::thread([&rules, local_csv, remote_url] {
             std::error_code ec;
             const auto parent = local_csv.parent_path();
 
@@ -123,7 +126,6 @@ void StartCsvUpdate(Rules& rules,
                 return;
             }
 
-            // Validate the downloaded CSV without changing active rules.
             Rules candidate;
             std::string error;
 
@@ -132,17 +134,11 @@ void StartCsvUpdate(Rules& rules,
                 return;
             }
 
-            // Replace the local file only after successful validation.
             if(!ReplaceFile(temp, local_csv))
                 return;
 
-            // Load the validated file into the active rules.
-            if(!rules.LoadCsv(local_csv, &error)) {
-                // Keep a failed reload from leaving an invalid local file.
-                // LoadCsv validates before changing the active maps.
-                return;
-            }
-        }).detach();
+            rules.LoadCsv(local_csv, &error);
+        });
     });
 }
 
