@@ -550,7 +550,7 @@ void Game::Initialize() {
 	defaultStrings.emplace_back(stBanlist, 1300);
 	cbDBLFList = AlignElementWithParent(AddComboBox(env, Scale(80, 5, 220, 30), wDeckEdit, COMBOBOX_DBLFLIST));
 	cbDBLFList->setMaxSelectionRows(10);
-	stGenesysPoints = env->addStaticText(L"Genesys: point list not loaded", Scale(5, 125, 290, 145), false, false, wDeckEdit);
+	stGenesysPoints = AlignElementWithParent(env->addStaticText(L"Genesys: point list not loaded", Scale(5, 125, 290, 145), false, false, wDeckEdit));
 	stGenesysPoints->setOverrideColor(irr::video::SColor(255, 220, 220, 220));
 	stDeck = env->addStaticText(gDataManager->GetSysString(1301).data(), Scale(10, 39, 100, 59), false, false, wDeckEdit);
 	defaultStrings.emplace_back(stDeck, 1301);
