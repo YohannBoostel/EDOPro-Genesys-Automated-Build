@@ -1438,6 +1438,14 @@ void Game::DrawDeckBd() {
 			};
 			DrawShadowTextPos(textFont, GetScopeString(), Resize(859, height_offset + 208 + i * 66, 955, height_offset + 229 + i * 66),
 							  Resize(860, height_offset + 209 + i * 66, 955, height_offset + 229 + i * 66), 0xffffffff, 0xff000000, false, false, &rect);
+
+			const int genesysPoints = deckBuilder.GetGenesysPoints(ptr);
+			if(genesysPoints > 0) {
+				DrawShadowTextPos(textFont, epro::format(L"{} pts", genesysPoints),
+								  Resize(955, height_offset + 164 + i * 66, 1015, height_offset + 185 + i * 66),
+								  Resize(956, height_offset + 165 + i * 66, 1015, height_offset + 185 + i * 66),
+								  0xff80d8ff, 0xff000000, false, false, &rect);
+			}
 		}
 	}
 	if(deckBuilder.is_draging)
