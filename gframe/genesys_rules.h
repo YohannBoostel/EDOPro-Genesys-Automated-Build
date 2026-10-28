@@ -34,8 +34,8 @@ struct ValidationResult {
 
 class Rules {
 public:
-    static constexpr uint32_t TYPE_PENDULUM = 0x1000000;
-    static constexpr uint32_t TYPE_LINK = 0x4000000;
+    static constexpr uint32_t GENESYS_TYPE_PENDULUM = 0x1000000;
+    static constexpr uint32_t GENESYS_TYPE_LINK = 0x4000000;
 
     bool LoadCsv(const std::filesystem::path& path, std::string* error = nullptr);
     int PointsFor(uint32_t id, uint32_t alias = 0, const std::string& name = {}) const;
