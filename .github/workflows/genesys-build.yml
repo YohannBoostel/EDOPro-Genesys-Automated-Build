@@ -37,6 +37,24 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
+      # ygopro-core contains Lua as a nested Git submodule. The headers
+      # lauxlib.h/lua.h are required by ocgcore; checkout's recursive option
+      # has not populated them in the failing run, so initialize and verify it.
+      - name: Initialize nested Lua submodule
+        shell: bash
+        run: |
+          git submodule update --init --recursive
+          if [ ! -f ocgcore/lua/src/lauxlib.h ]; then
+            git -C ocgcore submodule update --init --recursive lua/src
+          fi
+          if [ ! -f ocgcore/lua/src/lauxlib.h ]; then
+            echo "ERROR: Lua submodule is missing ocgcore/lua/src/lauxlib.h"
+            echo "Submodule status:"
+            git submodule status --recursive || true
+            exit 1
+          fi
+          echo "Lua headers found: ocgcore/lua/src/lauxlib.h"
+
       # O projeto gera os arquivos Visual Studio com o toolset v141_xp
       # porque o script travis/build.sh usa --oldwindows=true.
       # O runner windows-2022 não instala esse toolset por padrão.
