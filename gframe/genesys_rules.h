@@ -1,15 +1,15 @@
+
 #pragma once
 
 #include <cstdint>
 #include <filesystem>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace ygo::genesys {
 
-// Deliberately independent of EDOPro's CardDataC so this rule engine can be
-// unit-tested and then adapted at the DeckBuilder/DeckManager boundary.
 struct CardEntry {
     uint32_t id = 0;
     uint32_t alias = 0;
@@ -41,9 +41,10 @@ public:
     int PointsFor(uint32_t id, uint32_t alias = 0, const std::string& name = {}) const;
     bool HasPointEntry(uint32_t id, uint32_t alias = 0, const std::string& name = {}) const;
     ValidationResult Validate(const DeckLists& deck, int cap = 100) const;
-    size_t PointEntryCount() const noexcept { return points_.size() + name_points_.size(); }
+    size_t PointEntryCount() const;
 
 private:
+    mutable std::mutex mutex_;
     std::unordered_map<uint32_t, int> points_;
     std::unordered_map<std::string, int> name_points_;
 };
