@@ -1201,6 +1201,20 @@ void Game::DrawThumb(const CardDataC* cp, irr::core::vector2di pos, LFList* lfli
 		otloc = irr::core::recti(pos.X + 7, pos.Y + 50 * window_scale.Y, pos.X + 37 * window_scale.X, pos.Y + 65 * window_scale.Y);
 	}
 	driver->draw2DImage(img, dragloc, irr::core::recti(0, 0, size.Width, size.Height), cliprect);
+	const int genesysPoints = deckBuilder.GetGenesysPoints(cp);
+	if(genesysPoints > 0) {
+		const irr::s32 badgeWidth = dragloc.getWidth() * 3 / 4;
+		const irr::s32 badgeHeight = dragloc.getHeight() / 5;
+		const irr::core::recti badgeRect(
+			dragloc.LowerRightCorner.X - badgeWidth,
+			dragloc.LowerRightCorner.Y - badgeHeight,
+			dragloc.LowerRightCorner.X,
+			dragloc.LowerRightCorner.Y
+		);
+		driver->draw2DRectangle(irr::video::SColor(230, 12, 38, 68), badgeRect, cliprect);
+		DrawShadowTextPos(textFont, epro::format(L"{} PTS", genesysPoints),
+			badgeRect, badgeRect, 0xffffffff, 0xff000000, true, true, cliprect);
+	}
 	if(!is_siding) {
 		switch(count) {
 			case -1:
