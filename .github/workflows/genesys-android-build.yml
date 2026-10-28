@@ -53,6 +53,24 @@ jobs:
           git clone https://github.com/lua/lua.git android-project/deps/edopro/ocgcore/lua/src
           git -C android-project/deps/edopro/ocgcore/lua/src checkout 6e22fedb74cf0c9b6656e9fce8b7331db847c605
 
+      - name: Register Genesys rules source in Android build
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("android-project/jni/Android.mk")
+          text = path.read_text()
+          marker = "$(GFRAME_PATH)/drawing.cpp \\\\"
+          if "$(GFRAME_PATH)/genesys_rules.cpp" in text:
+              print("Genesys rules source is already registered.")
+          elif marker in text:
+              text = text.replace(marker, marker + "\\n\\t\\t\\t\\t   $(GFRAME_PATH)/genesys_rules.cpp \\\\", 1)
+              path.write_text(text)
+              print("Registered genesys_rules.cpp in Android.mk.")
+          else:
+              raise SystemExit("Could not locate drawing.cpp entry in jni/Android.mk")
+          PY
+
       - name: Verify Genesys source files
         shell: bash
         run: |
