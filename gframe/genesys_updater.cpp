@@ -104,7 +104,7 @@ void StartCsvUpdate(Rules& rules,
     static std::once_flag start_flag;
     static UpdateWorker worker;
 
-    std::call_once(start_flag, [&rules, local_csv, remote_url, &worker] {
+    std::call_once(start_flag, [&rules, local_csv, remote_url] {
         worker.thread = std::thread([&rules, local_csv, remote_url] {
             std::error_code ec;
             const auto parent = local_csv.parent_path();
