@@ -33,7 +33,12 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 1
-
+          
+      - name: Update Genesys points list
+        shell: pwsh
+        run: |
+          python scripts/update_genesys_points.py
+          
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
