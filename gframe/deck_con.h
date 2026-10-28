@@ -75,6 +75,8 @@ public:
 	}
 	void StartFilter(bool force_refresh = false);
 	void RefreshCurrentDeck();
+	int GetGenesysPoints(const CardDataC* card) const;
+
 private:
 	void GetHoveredCard();
 	bool FiltersChanged();
