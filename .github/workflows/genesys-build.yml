@@ -37,18 +37,23 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # ygopro-core contains Lua as a nested Git submodule. The headers
-      # lauxlib.h/lua.h are required by ocgcore; checkout's recursive option
-      # has not populated them in the failing run, so initialize and verify it.
-      - name: Initialize nested Lua submodule
+      # Garante os fontes Lua exigidos pelo ygopro-core. Em alguns checkouts
+      # o gitlink lua/src não está registrado no índice e o submodule update
+      # com caminho explícito falha com "pathspec did not match".
+      - name: Ensure Lua source headers
         shell: bash
         run: |
           git submodule update --init --recursive
           if [ ! -f ocgcore/lua/src/lauxlib.h ]; then
-            git -C ocgcore submodule update --init --recursive lua/src
+            echo "Lua headers missing; retrieving official Lua source into ocgcore/lua/src"
+            rm -rf ocgcore/lua/src
+            mkdir -p ocgcore/lua
+            git clone --depth 1 https://github.com/lua/lua.git ocgcore/lua/src
           fi
           if [ ! -f ocgcore/lua/src/lauxlib.h ]; then
-            echo "ERROR: Lua submodule is missing ocgcore/lua/src/lauxlib.h"
+            echo "ERROR: lauxlib.h is still missing after retrieving Lua sources."
+            echo "Lua directory listing:"
+            ls -la ocgcore/lua/src || true
             echo "Submodule status:"
             git submodule status --recursive || true
             exit 1
