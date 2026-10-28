@@ -1595,6 +1595,7 @@ void DeckBuilder::RefreshLimitationStatusOnRemoved(const CardDataC* card, DeckTy
 			break;
 		}
 	}
+	UpdateGenesysPointsLabel(current_deck);
 }
 void DeckBuilder::RefreshLimitationStatusOnAdded(const CardDataC* card, DeckType location) {
 	switch(location) {
@@ -1646,6 +1647,7 @@ void DeckBuilder::RefreshLimitationStatusOnAdded(const CardDataC* card, DeckType
 			break;
 		}
 	}
+	UpdateGenesysPointsLabel(current_deck);
 }
 bool DeckBuilder::push_main(const CardDataC* pointer, int seq, bool forced) {
 	if(pointer->isRitualMonster()) {
