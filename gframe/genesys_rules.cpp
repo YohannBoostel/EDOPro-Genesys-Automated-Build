@@ -139,7 +139,7 @@ ValidationResult Rules::Validate(const DeckLists& deck, int cap) const {
             result.total_points += PointsFor(card.id, card.alias, card.name);
             const uint32_t count_key = card.alias ? card.alias : card.id;
             if(++copies[count_key] > 3) over_three.insert(count_key);
-            if(card.type & (TYPE_LINK | TYPE_PENDULUM)) forbidden.insert(card.id);
+            if(card.type & (GENESYS_TYPE_LINK | GENESYS_TYPE_PENDULUM)) forbidden.insert(card.id);
             if(!HasPointEntry(card.id, card.alias, card.name)) unknown.insert(card.id);
         }
     };
