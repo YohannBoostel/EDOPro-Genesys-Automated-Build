@@ -103,6 +103,22 @@ jobs:
         shell: bash
         run: ./travis/predeploy.sh
 
+      - name: Include Genesys points list
+        shell: pwsh
+        run: |
+          $source = "config/genesys_points.csv"
+          $destination = "deploy/config/genesys_points.csv"
+
+          if (!(Test-Path $source)) {
+            throw "Genesys points CSV not found: $source"
+          }
+
+          New-Item -ItemType Directory -Force -Path "deploy/config" | Out-Null
+          Copy-Item $source $destination -Force
+
+          $lineCount = (Get-Content $destination).Count
+          Write-Host "Genesys points CSV copied to deploy. Lines: $lineCount"
+
       - name: Upload compiled client
         uses: actions/upload-artifact@v4
         with:
