@@ -45,11 +45,14 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Initialize nested Lua submodule and verify source
+      - name: Initialize all Genesys submodules and verify source
         shell: bash
         run: |
-          git -C android-project/deps/edopro/ocgcore submodule sync --recursive
-          git -C android-project/deps/edopro/ocgcore submodule update --init --recursive
+          git -C android-project/deps/edopro submodule sync --recursive
+          git -C android-project/deps/edopro submodule update --init --force --recursive
+          echo "Submodule status:"
+          git -C android-project/deps/edopro submodule status --recursive
+          echo "Checking required files:"
           test -f android-project/deps/edopro/gframe/drawing.cpp
           test -f android-project/deps/edopro/config/genesys_points.csv
           test -f android-project/deps/edopro/ocgcore/lua/src/lauxlib.h
