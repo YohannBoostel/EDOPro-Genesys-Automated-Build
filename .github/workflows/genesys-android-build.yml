@@ -59,16 +59,16 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           path = Path("android-project/jni/Android.mk")
-          text = path.read_text()
-          marker = "$(GFRAME_PATH)/drawing.cpp \\\\"
-          if "$(GFRAME_PATH)/genesys_rules.cpp" in text:
+          lines = path.read_text().splitlines()
+          if any("$(GFRAME_PATH)/genesys_rules.cpp" in line for line in lines):
               print("Genesys rules source is already registered.")
-          elif marker in text:
-              text = text.replace(marker, marker + "\\n\\t\\t\\t\\t   $(GFRAME_PATH)/genesys_rules.cpp \\\\", 1)
-              path.write_text(text)
-              print("Registered genesys_rules.cpp in Android.mk.")
           else:
-              raise SystemExit("Could not locate drawing.cpp entry in jni/Android.mk")
+              index = next((i for i, line in enumerate(lines) if "$(GFRAME_PATH)/drawing.cpp" in line), None)
+              if index is None:
+                  raise SystemExit("Could not locate drawing.cpp entry in jni/Android.mk")
+              lines.insert(index + 1, "\t\t\t\t   $(GFRAME_PATH)/genesys_rules.cpp \\")
+              path.write_text("\n".join(lines) + "\n")
+              print("Registered genesys_rules.cpp in Android.mk.")
           PY
 
       - name: Verify Genesys source files
