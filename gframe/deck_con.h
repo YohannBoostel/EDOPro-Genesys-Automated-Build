@@ -17,6 +17,7 @@ struct CardString;
 
 class DeckBuilder final : public irr::IEventReceiver {
 public:
+    int GetGenesysPoints(const CardDataC* card) const;
 	enum limitation_search_filters {
 		LIMITATION_FILTER_NONE,
 		LIMITATION_FILTER_BANNED,
