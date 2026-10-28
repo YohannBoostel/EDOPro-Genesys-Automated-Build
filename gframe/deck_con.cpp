@@ -18,16 +18,30 @@
 #include "client_card.h"
 #include "fmt.h"
 #include "genesys_rules.h"
+#include "genesys_updater.h"
 
 namespace ygo {
 
 namespace {
 ygo::genesys::Rules& GetGenesysRules() {
     static ygo::genesys::Rules rules;
-    static const bool loaded = [] (ygo::genesys::Rules& target) {
+
+    static const bool loaded = [&]() {
+        const std::filesystem::path csv_path =
+            "./config/genesys_points.csv";
+
         std::string error;
-        return target.LoadCsv("./config/genesys_points.csv", &error);
-    }(rules);
+        const bool result = rules.LoadCsv(csv_path, &error);
+
+        ygo::genesys::StartCsvUpdate(
+            rules,
+            csv_path,
+            "https://raw.githubusercontent.com/YohannBoostel/EDOPro-Genesys-Automated-Build/main/config/genesys_points.csv"
+        );
+
+        return result;
+    }();
+
     (void)loaded;
     return rules;
 }
