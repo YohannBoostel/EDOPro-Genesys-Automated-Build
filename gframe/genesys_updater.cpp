@@ -1,9 +1,8 @@
-
 #include "genesys_updater.h"
 #include "curl.h"
 
 #include <atomic>
-#include <filesystem>
+#include <cstdio>
 #include <fstream>
 #include <mutex>
 #include <string>
@@ -39,8 +38,7 @@ size_t WriteData(void* data, size_t size, size_t count, void* user_data) {
     return *output ? bytes : 0;
 }
 
-bool DownloadCsv(const std::string& url,
-                 const std::filesystem::path& destination) {
+bool DownloadCsv(const std::string& url, const std::string& destination) {
     std::ofstream output(destination, std::ios::binary | std::ios::trunc);
     if(!output) {
         Log("ERRO: nao foi possivel criar o arquivo temporario.");
@@ -62,7 +60,7 @@ bool DownloadCsv(const std::string& url,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "EDOPro-Genesys-CSV-Updater");
-	curl_easy_setopt(curl, CURLOPT_CAINFO, "./cacert.pem");
+    curl_easy_setopt(curl, CURLOPT_CAINFO, "./cacert.pem");
 
     const CURLcode result = curl_easy_perform(curl);
     long status = 0;
@@ -82,38 +80,24 @@ bool DownloadCsv(const std::string& url,
     return true;
 }
 
-bool ReplaceFile(const std::filesystem::path& downloaded,
-                 const std::filesystem::path& local) {
-    std::error_code ec;
-    const auto backup = local.string() + ".genesys-backup";
+bool ReplaceFile(const std::string& downloaded, const std::string& local) {
+    const std::string backup = local + ".genesys-backup";
+    std::remove(backup.c_str());
 
-    std::filesystem::remove(backup, ec);
-    ec.clear();
-
-    const bool had_original = std::filesystem::exists(local, ec) && !ec;
-
-    if(had_original) {
-        std::filesystem::rename(local, backup, ec);
-        if(ec) {
-            Log("ERRO ao renomear CSV local: " + ec.message());
-            return false;
-        }
-    }
-
-    std::filesystem::rename(downloaded, local, ec);
-
-    if(ec) {
-        Log("ERRO ao instalar CSV baixado: " + ec.message());
-        if(had_original) {
-            std::error_code restore_error;
-            std::filesystem::rename(backup, local, restore_error);
-            if(restore_error)
-                Log("ERRO ao restaurar backup: " + restore_error.message());
-        }
+    const bool had_original = std::ifstream(local, std::ios::binary).good();
+    if(had_original && std::rename(local.c_str(), backup.c_str()) != 0) {
+        Log("ERRO ao renomear CSV local para backup.");
         return false;
     }
 
-    std::filesystem::remove(backup, ec);
+    if(std::rename(downloaded.c_str(), local.c_str()) != 0) {
+        Log("ERRO ao instalar CSV baixado.");
+        if(had_original && std::rename(backup.c_str(), local.c_str()) != 0)
+            Log("ERRO ao restaurar backup.");
+        return false;
+    }
+
+    std::remove(backup.c_str());
     Log("CSV remoto instalado no caminho local.");
     return true;
 }
@@ -126,29 +110,19 @@ void StartCsvUpdate(Rules& rules,
     static std::once_flag start_flag;
     static UpdateWorker worker;
 
-    std::call_once(start_flag, [&rules, local_csv, remote_url] {
+    const std::string local_path = local_csv.string();
+
+    std::call_once(start_flag, [&rules, local_path, remote_url] {
         Log("Atualizador iniciado. URL: " + remote_url);
 
-        worker.thread = std::thread([&rules, local_csv, remote_url] {
-            std::error_code ec;
-            const auto parent = local_csv.parent_path();
-
-            if(!parent.empty())
-                std::filesystem::create_directories(parent, ec);
-
-            if(ec) {
-                Log("ERRO ao criar pasta: " + ec.message());
-                return;
-            }
-
+        worker.thread = std::thread([&rules, local_path, remote_url] {
             const auto suffix =
                 std::to_string(update_counter.fetch_add(1));
 
-            const std::filesystem::path temp =
-                local_csv.string() + ".download-" + suffix;
+            const std::string temp = local_path + ".download-" + suffix;
 
             if(!DownloadCsv(remote_url, temp)) {
-                std::filesystem::remove(temp, ec);
+                std::remove(temp.c_str());
                 return;
             }
 
@@ -157,17 +131,17 @@ void StartCsvUpdate(Rules& rules,
 
             if(!candidate.LoadCsv(temp, &error)) {
                 Log("ERRO ao validar CSV remoto: " + error);
-                std::filesystem::remove(temp, ec);
+                std::remove(temp.c_str());
                 return;
             }
 
             Log("CSV remoto validado. Entradas: " +
                 std::to_string(candidate.PointEntryCount()));
 
-            if(!ReplaceFile(temp, local_csv))
+            if(!ReplaceFile(temp, local_path))
                 return;
 
-            if(!rules.LoadCsv(local_csv, &error))
+            if(!rules.LoadCsv(local_path, &error))
                 Log("ERRO ao recarregar regras: " + error);
             else
                 Log("Regras Genesys atualizadas com sucesso.");
