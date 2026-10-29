@@ -69,12 +69,12 @@ std::string NormalizeName(std::string name) {
 
 } // namespace
 
-bool Rules::LoadCsv(const std::filesystem::path& path, std::string* error) {
+bool Rules::LoadCsv(const std::string& path, std::string* error) {
     std::ifstream in(path, std::ios::binary);
 
     if(!in) {
         if(error)
-            *error = "Could not open Genesys points CSV: " + path.string();
+            *error = "Could not open Genesys points CSV: " + path;
         return false;
     }
 
