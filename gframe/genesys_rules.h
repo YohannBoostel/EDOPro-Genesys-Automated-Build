@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cstdint>
-#include <filesystem>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -37,7 +36,7 @@ public:
     static constexpr uint32_t GENESYS_TYPE_PENDULUM = 0x1000000;
     static constexpr uint32_t GENESYS_TYPE_LINK = 0x4000000;
 
-    bool LoadCsv(const std::filesystem::path& path, std::string* error = nullptr);
+    bool LoadCsv(const std::string& path, std::string* error = nullptr);
     int PointsFor(uint32_t id, uint32_t alias = 0, const std::string& name = {}) const;
     bool HasPointEntry(uint32_t id, uint32_t alias = 0, const std::string& name = {}) const;
     ValidationResult Validate(const DeckLists& deck, int cap = 100) const;
