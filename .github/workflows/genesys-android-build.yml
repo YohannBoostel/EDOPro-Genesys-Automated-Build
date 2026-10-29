@@ -95,6 +95,17 @@ jobs:
           export PATH="$ANDROID_NDK_HOME:$PATH"
           ndk-build -j2
 
+      - name: Download libWindbot Android dependency
+        shell: bash
+        working-directory: android-project
+        run: |
+          mkdir -p libs
+          curl --fail --retry 5 --connect-timeout 30 --location \
+            --output libs/libWindbot.aar \
+            https://github.com/ProjectIgnis/windbot/releases/download/20250412/libWindbot.aar
+          test -s libs/libWindbot.aar
+          echo "libWindbot.aar downloaded successfully."
+
       - name: Build APK
         shell: bash
         working-directory: android-project
