@@ -89,32 +89,20 @@ jobs:
           test -f android-project/deps/edopro/ocgcore/lua/src/lauxlib.h
           echo "Genesys source and Lua headers verified."
 
-      - name: Download full EDOPro distribution assets
+      - name: Prepare Android assets for first-launch download
         shell: bash
         working-directory: android-project
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y lua5.3 rsync p7zip-full
+          sudo apt-get install -y lua5.3
           mkdir -p src/main/assets/defaults src/main/assets/update
           curl --fail --retry 5 --connect-timeout 30 --location \
             --output NotoSansJP-Regular.otf \
             https://raw.githubusercontent.com/ProjectIgnis/Distribution/master/fonts/NotoSansJP-Regular.otf
           lua ci/bin2c.lua NotoSansJP-Regular.otf deps/edopro/gframe/CGUITTFont/bundled_font.cpp
-          git clone --recurse-submodules https://github.com/ProjectIgnis/Distribution.git
-          rsync -ar --exclude='.*' --exclude='*.sh' --exclude='script/.*' \
-            --exclude='expansions/.*' --exclude='expansions/ci' --exclude='expansions/*rerelease*' \
-            --exclude='expansions/README.md' --exclude='expansions/unofficial-fossil.cdb' \
-            --exclude='expansions/release.cdb' --exclude='script/pre-release' \
-            --exclude='textures/Backup' --exclude='puzzles' \
-            Distribution/ src/main/assets/defaults/
-          mkdir -p src/main/assets/defaults/deck
-          rm -rf src/main/assets/defaults/config/*.json src/main/assets/defaults/config/languages/Thai
-          cp Distribution/config/configs.json src/main/assets/defaults/config/configs.json
-          sed -i 's/dpi_scale = .*/dpi_scale = 2.000000/' src/main/assets/defaults/config/system.conf
-          test -s deps/edopro/gframe/CGUITTFont/bundled_font.cpp
-          test -s src/main/assets/defaults/config/system.conf
-          test -d src/main/assets/defaults/config
+          # Match the official Android project: game resources are downloaded on first launch.
+          ./ci/touch-assets.sh
 
       - name: Build native Android libraries
         shell: bash
@@ -124,23 +112,6 @@ jobs:
           export ANDROID_NDK="$ANDROID_NDK_HOME"
           export PATH="$ANDROID_NDK_HOME:$PATH"
           ndk-build -j2
-
-      - name: Generate Android asset indexes
-        shell: bash
-        working-directory: android-project
-        run: |
-          set -euo pipefail
-          mkdir -p src/main/assets/defaults src/main/assets/update
-          touch src/main/assets/defaults/.nomedia src/main/assets/update/.nomedia
-          cd src/main/assets/defaults
-          find -L . ! -path . -type d | sed -E 's|^\./||' > ../index.txt
-          find -L . ! -path . | sed -E 's|^\./||' > ../filelist.txt
-          cd ../update
-          find -L . ! -path . -type d | sed -E 's|^\./||' > ../indexu.txt
-          find -L . ! -path . | sed -E 's|^\./||' > ../filelistu.txt
-          test -s ../filelist.txt
-          echo "Default asset files: $(wc -l < ../filelist.txt)"
-          du -sh ../defaults
 
       - name: Download libWindbot Android dependency
         shell: bash
