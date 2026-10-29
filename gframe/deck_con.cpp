@@ -27,8 +27,7 @@ ygo::genesys::Rules& GetGenesysRules() {
     static ygo::genesys::Rules rules;
 
     static const bool loaded = [&]() {
-        const std::filesystem::path csv_path =
-            "./config/genesys_points.csv";
+        const std::string csv_path = "./config/genesys_points.csv";
 
         std::string error;
         const bool result = rules.LoadCsv(csv_path, &error);
