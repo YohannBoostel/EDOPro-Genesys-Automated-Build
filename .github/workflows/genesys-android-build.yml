@@ -133,11 +133,11 @@ jobs:
           mkdir -p src/main/assets/defaults src/main/assets/update
           touch src/main/assets/defaults/.nomedia src/main/assets/update/.nomedia
           cd src/main/assets/defaults
-          find -L . ! -path . -type d | sed -E 's|^\\./||' > ../index.txt
-          find -L . ! -path . | sed -E 's|^\\./||' > ../filelist.txt
+          find -L . ! -path . -type d | sed -E 's|^\./||' > ../index.txt
+          find -L . ! -path . | sed -E 's|^\./||' > ../filelist.txt
           cd ../update
-          find -L . ! -path . -type d | sed -E 's|^\\./||' > ../indexu.txt
-          find -L . ! -path . | sed -E 's|^\\./||' > ../filelistu.txt
+          find -L . ! -path . -type d | sed -E 's|^\./||' > ../indexu.txt
+          find -L . ! -path . | sed -E 's|^\./||' > ../filelistu.txt
           test -s ../filelist.txt
           echo "Default asset files: $(wc -l < ../filelist.txt)"
           du -sh ../defaults
