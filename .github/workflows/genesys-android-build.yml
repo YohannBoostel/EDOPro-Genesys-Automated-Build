@@ -12,6 +12,9 @@ permissions:
 jobs:
   build-android:
     runs-on: ubuntu-24.04
+    env:
+      OS_NAME: linux
+      USE_BUNDLED_FONT: 1
     steps:
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -85,6 +88,21 @@ jobs:
           test -f android-project/deps/edopro/config/genesys_points.csv
           test -f android-project/deps/edopro/ocgcore/lua/src/lauxlib.h
           echo "Genesys source and Lua headers verified."
+
+      - name: Prepare required Android assets and bundled font
+        shell: bash
+        working-directory: android-project
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y lua5.3
+          ./ci/touch-assets.sh
+          test -s NotoSansJP-Regular.otf
+          test -s deps/edopro/gframe/CGUITTFont/bundled_font.cpp
+          test -f src/main/assets/index.txt
+          test -f src/main/assets/filelist.txt
+          test -f src/main/assets/indexu.txt
+          test -f src/main/assets/filelistu.txt
 
       - name: Build native Android libraries
         shell: bash
