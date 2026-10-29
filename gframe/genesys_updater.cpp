@@ -105,12 +105,12 @@ bool ReplaceFile(const std::string& downloaded, const std::string& local) {
 } // namespace
 
 void StartCsvUpdate(Rules& rules,
-                    const std::filesystem::path& local_csv,
+                    const std::string& local_csv,
                     const std::string& remote_url) {
     static std::once_flag start_flag;
     static UpdateWorker worker;
 
-    const std::string local_path = local_csv.string();
+    const std::string local_path = local_csv;
 
     std::call_once(start_flag, [&rules, local_path, remote_url] {
         Log("Atualizador iniciado. URL: " + remote_url);
