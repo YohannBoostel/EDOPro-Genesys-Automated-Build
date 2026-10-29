@@ -110,7 +110,7 @@ jobs:
             Distribution/ src/main/assets/defaults/
           mkdir -p src/main/assets/defaults/deck
           rm -rf src/main/assets/defaults/config/*.json src/main/assets/defaults/config/languages/Thai
-          cp Distribution/config/configs.prod.json src/main/assets/defaults/config/configs.json
+          cp Distribution/config/configs.json src/main/assets/defaults/config/configs.json
           sed -i 's/dpi_scale = .*/dpi_scale = 2.000000/' src/main/assets/defaults/config/system.conf
           test -s deps/edopro/gframe/CGUITTFont/bundled_font.cpp
           test -s src/main/assets/defaults/config/system.conf
